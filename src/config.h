@@ -3,10 +3,14 @@
 // strings
 #define NAME F("Control de Temperatura tipo On Off\n")
 #define COMP F("Fecha y hora de Comp: ")
-#define INSTRUCCIONES F("Cuando el relay se enciende, calentar el sensor\n")
+#define INSTRUCCIONES F("Calentar el sensor hasta que el relay active el cooler\n")
 #define SEPARADOR F("------------------------------------")
 #define TAB F("\t")
 #define CR F("\n")
+
+// setPoint
+float setpoint = 24.0; // [°C]
+float emax = 0.5;    // [°C]
 
 // velocidad de UART
 const long BAUDRATE = 115200;

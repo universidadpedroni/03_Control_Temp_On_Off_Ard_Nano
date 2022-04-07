@@ -29,6 +29,9 @@ void setup() {
   Serial << SEPARADOR << CR;
   Serial << NAME << COMP << __DATE__ << F(", ") << __TIME__ << CR;
   Serial << SEPARADOR << CR << INSTRUCCIONES;
+  Serial << F("Setpoint: ") << setpoint << F("°C\n");
+  Serial << F("Histeresis: ") << emax << F("°C\n");
+  Serial <<F("control sin hist: parp rápido. control con hist. parpadeo lento\n");
   parpadeo.init();
   pinMode(RELAY_PIN,OUTPUT);
   pinMode(CONTROL_PIN,INPUT_PULLUP);
@@ -51,7 +54,7 @@ void loop()
 bool controlBangBangSinHisteresis(float setpoint, float temp)
 {
   bool accion = false;
-  setpoint - temp > 0? accion =  true: accion = false;
+  setpoint - temp > 0? accion =  false: accion = true;
   return accion;
 
 }
@@ -61,7 +64,7 @@ bool controlBangBangConHisteresis(float setpoint, float temp,float emax)
   float e = setpoint - temp;
   static bool accion = false;
   // El controlador solo cambia de estado fuera de los límites de la banda de paso
-  if (abs(e) > emax) e >= emax? accion = true: accion = false;
+  if (abs(e) > emax) e >= emax? accion = false: accion = true;
   return accion;
 
 
@@ -72,22 +75,23 @@ bool controlBangBangConHisteresis(float setpoint, float temp,float emax)
 void rutinaDeControl(unsigned long interval)
 {
   // TEMPORIZACIÓN
-  const float setpoint = 24;
+  
   float temp = 0;
   bool accionDeControl = false;
 	static unsigned long previousMillis = 0;        // will store last time LED was updated
 	//const long interval = 1000;           // interval at which to blink (milliseconds)
 	unsigned long currentMillis = millis();
-	static bool estadoPin=false;
-	
+	//static bool estadoPin=false;
+	// TEMPORIZACIÓN
 	if(currentMillis - previousMillis > interval) 
 	{
-	// TEMPORIZACIÓN
+	
 
 
      // Lectura de temperatura
      temp = dht.readTemperature();
-     
+       
+
      // Cálculo de la Ley de control  
      if (digitalRead(CONTROL_PIN))
      {
@@ -95,7 +99,7 @@ void rutinaDeControl(unsigned long interval)
      }
      else
      {
-       accionDeControl = controlBangBangConHisteresis(setpoint, temp, 1.0);
+       accionDeControl = controlBangBangConHisteresis(setpoint, temp, emax);
      }
      
      // Ejecución
@@ -103,6 +107,8 @@ void rutinaDeControl(unsigned long interval)
     
      // Extra: Mostrar temperatura en display 
      displayTemp(temp);
+     // Extra: Datos por serial
+     Serial << setpoint << (",") << temp << (",") << setpoint-temp << (",") << accionDeControl << CR;
   }
     
 }
